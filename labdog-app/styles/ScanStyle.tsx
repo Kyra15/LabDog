@@ -82,4 +82,53 @@ export const styles = StyleSheet.create({
   },
 
   summaryText: { color: colors.navy, fontFamily: fonts.regular, fontSize: 15, lineHeight: 22 },
+
+  stripWrap: { width: '100%', marginBottom: 16 },
+
+  stripHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+
+  pageCount: { color: colors.navy, opacity: 0.6, fontSize: 12, fontFamily: fonts.regular },
+
+  clearLink: { color: colors.terracotta, fontSize: 12, fontFamily: fonts.bold },
+
+  thumb: {
+    width: 64,
+    height: 84,
+    marginRight: 12,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.navy,
+  },
+
+  thumbActive: { borderColor: colors.terracotta },
+
+  thumbImage: { width: '100%', height: '100%', borderRadius: 6 },
+
+  thumbRemove: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.navy,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  thumbRemoveText: { color: colors.white, fontSize: 11, fontFamily: fonts.bold },
+
+  hint: {
+    color: colors.navy,
+    opacity: 0.7,
+    fontSize: 13,
+    fontFamily: fonts.regular,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+
+  notice: { width: '100%', backgroundColor: colors.gold, borderRadius: 12, padding: 12, marginTop: 24 },
+
+  noticeText: { color: colors.navy, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+
 });
