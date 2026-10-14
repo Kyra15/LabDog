@@ -106,14 +106,15 @@ export const styles = StyleSheet.create({
 
   thumbRemove: {
     position: 'absolute',
-    top: -8,
-    right: -8,
+    top: 0,
+    right: 0,
     width: 20,
     height: 20,
     borderRadius: 10,
     backgroundColor: colors.navy,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 5
   },
 
   thumbRemoveText: { color: colors.white, fontSize: 11, fontFamily: fonts.bold },
@@ -130,5 +131,65 @@ export const styles = StyleSheet.create({
   notice: { width: '100%', backgroundColor: colors.gold, borderRadius: 12, padding: 12, marginTop: 24 },
 
   noticeText: { color: colors.navy, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+
+  resultTitle: { color: colors.navy, fontFamily: fonts.bold, fontSize: 17, marginBottom: 8 },
+
+  sectionLabel: { 
+    color: colors.navy, 
+    opacity: 0.6, 
+    fontSize: 12, 
+    fontFamily: fonts.bold, 
+    textTransform: 'uppercase', 
+    marginTop: 18, 
+    marginBottom: 6 
+  },
+
+  markerRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingVertical: 10, 
+    borderTopWidth: 1, 
+    borderTopColor: `${colors.navy}22` 
+  },
+
+  markerMain: { flex: 1, paddingRight: 10 },
+
+  markerName: { color: colors.navy, fontFamily: fonts.bold, fontSize: 14 },
+
+  markerMeta: { 
+    color: colors.navy, 
+    opacity: 0.7, 
+    fontFamily: fonts.regular, 
+    fontSize: 13, 
+    marginTop: 2 
+  },
+
+  flagPill: { 
+    borderWidth: 1.5,
+    borderRadius: 999, 
+    paddingVertical: 4, 
+    paddingHorizontal: 10, 
+    backgroundColor: colors.white 
+  },
+  
+  flagText: { color: colors.navy, fontFamily: fonts.bold, fontSize: 12 },
+
+  flag_high: { borderColor: colors.terracotta },
+
+  flag_low: { borderColor: colors.gold },
+
+  flag_normal: { borderColor: colors.sage },
+
+  flag_unknown: { borderColor: colors.navy },
+  
+  disclaimer: { 
+    color: colors.navy, 
+    opacity: 0.6, 
+    fontFamily: fonts.regular, 
+    fontSize: 12, 
+    lineHeight: 17,
+     marginTop: 18 
+  },
 
 });

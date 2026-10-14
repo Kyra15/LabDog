@@ -18,9 +18,10 @@ import { API_URL } from '../config';
 
 const ANALYZE_URL = `${API_URL}/analyze`;
 const MAX_PAGES = 10;
-const TIMEOUT_MS = 90_000; // time for render server to spin up
-const SLOW_HINT_MS = 8_000;
+const TIMEOUT_MS = 120000; // time for render server to spin up (2x bc of multiple model calls)
+const SLOW_HINT_MS = 8000;
 const QUALITY_CODES = ['blank', 'dark', 'blurry', 'small'];
+const FLAG_LABEL = { high: 'High', low: 'Low', normal: 'In range', unknown: 'Unclear' };
 
 interface Page {
   uri: string;
@@ -31,12 +32,22 @@ interface PageProblem {
   code: string;
   error: string;
 }
+interface Marker {
+  name: string; value: string; unit: string; ref_range: string;
+  flag: 'low' | 'normal' | 'high' | 'unknown';
+}
 interface AnalyzeResponse {
   summary?: string;
   problems?: PageProblem[];
   error?: string;
   code?: string;
+  title?: string;
+  markers?: Marker[];
+  key_insights?: string[];
+  doctor_questions?: string[];
+  disclaimer?: string
 }
+
 type Outcome =
   | { ok: true; data: AnalyzeResponse }
   | { ok: false; message: string; code?: string };
@@ -88,7 +99,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Scan'>;
 export default function ScanScreen({ navigation }: Props): React.JSX.Element {
   const [pages, setPages] = useState<Page[]>([]);
   const [selected, setSelected] = useState<number>(0);
-  const [summary, setSummary] = useState<string>('');
+  const [result, setResult] = useState<AnalyzeResponse | null>(null)
   const [notice, setNotice] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [slowHint, setSlowHint] = useState<boolean>(false);
@@ -111,21 +122,21 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
     if (next.length === 0) return;
     setSelected(pages.length);
     setPages((p) => [...p, ...next]);
-    setSummary('');
+    setResult(null);
     setNotice('');
   };
 
   const removePage = (index: number): void => {
     setPages((p) => p.filter((_, i) => i !== index));
     setSelected((s) => Math.max(0, Math.min(s, pages.length - 2)));
-    setSummary('');
+    setResult(null);
     setNotice('');
   };
 
   const clearPages = (): void => {
     setPages([]);
     setSelected(0);
-    setSummary('');
+    setResult(null);
     setNotice('');
   };
 
@@ -166,7 +177,7 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
       return;
     }
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
+      const picked = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsMultipleSelection: true,
         selectionLimit: MAX_PAGES - pages.length,
@@ -174,9 +185,9 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
         base64: true,
         quality: 0.7,
       });
-      if (result.canceled || !result.assets) return;
+      if (picked.canceled || !picked.assets) return;
       addPages(
-        result.assets.flatMap((a) => (a.base64 ? [{ uri: a.uri, base64: a.base64 }] : []))
+        picked.assets.flatMap((a) => (a.base64 ? [{ uri: a.uri, base64: a.base64 }] : []))
       );
     } catch (err) {
       console.error(err);
@@ -190,7 +201,7 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
       return;
     }
     setLoading(true);
-    setSummary('');
+    setResult(null);
     setNotice('');
     const slowTimer = setTimeout(() => setSlowHint(true), SLOW_HINT_MS);
 
@@ -204,7 +215,7 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
     setLoading(false);
 
     if (outcome.ok) {
-      setSummary(outcome.data.summary ?? '');
+      setResult(outcome.data);
       const skipped = outcome.data.problems ?? [];
       if (skipped.length > 0) {
         const which =
@@ -252,7 +263,7 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
           <View style={styles.stripWrap}>
             <View style={styles.stripHeader}>
               <Text style={styles.pageCount}>
-                {pages.length} {pages.length === 1 ? 'page' : 'pages'} · tap to preview
+                {pages.length} {pages.length === 1 ? 'page' : 'pages'} (click to preview)
               </Text>
               <TouchableOpacity onPress={clearPages}>
                 <Text style={styles.clearLink}>Clear all</Text>
@@ -313,9 +324,32 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
           </View>
         ) : null}
 
-        {summary ? (
+        {result ? (
           <View style={styles.summaryBox}>
-            <Text style={styles.summaryText}>{summary}</Text>
+            <Text style={styles.resultTitle}>{result.title}</Text>
+            <Text style={styles.summaryText}>{result.summary}</Text>
+
+            {(result.markers ?? []).map((m, i) => (
+              <View key={i} style={styles.markerRow}>
+                <View style={styles.markerMain}>
+                  <Text style={styles.markerName}>{m.name}</Text>
+                  <Text style={styles.markerMeta}>
+                    {m.value || '—'} {m.unit}{m.ref_range ? `  ·  range ${m.ref_range}` : ''}
+                  </Text>
+                </View>
+                <View style={[styles.flagPill, styles[`flag_${m.flag}` as const]]}>
+                  <Text style={styles.flagText}>{FLAG_LABEL[m.flag]}</Text>
+                </View>
+              </View>
+            ))}
+
+            {(result.key_insights ?? []).length > 0 && <Text style={styles.sectionLabel}>What stands out</Text>}
+            {(result.key_insights ?? []).map((t, i) => <Text key={i} style={styles.summaryText}>• {t}</Text>)}
+
+            {(result.doctor_questions ?? []).length > 0 && <Text style={styles.sectionLabel}>Questions for your doctor</Text>}
+            {(result.doctor_questions ?? []).map((t, i) => <Text key={i} style={styles.summaryText}>• {t}</Text>)}
+
+            <Text style={styles.disclaimer}>{result.disclaimer}</Text>
           </View>
         ) : null}
       </ScrollView>

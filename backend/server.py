@@ -14,6 +14,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from PIL import Image
 from werkzeug.exceptions import HTTPException
+
+from analysis import AnalysisError, analyze_report
+from redact import redact
 from tools import check_quality, post_process
 
 load_dotenv()
@@ -33,12 +36,8 @@ PROMPT_OCR = (
     "Output only the transcribed text."
 )
 
-PROMPT = (
-    ""
-)
-
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024
 CORS(app)
 
 
@@ -60,6 +59,14 @@ def handle_unexpected_error(e):
     return fail("internal server error", 500)
 
 
+class PageError(Exception):
+    # page problems get their own class bc then i can set my own getters
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
 def decode_image(image_base64):
     if "," in image_base64:
         image_base64 = image_base64.split(",", 1)[1]
@@ -69,7 +76,7 @@ def decode_image(image_base64):
     image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
     if image is None:
-        # opencv can't read heic, fall back to pillow
+        # opencv can't read heic, fall back to pillow (ios photos)
         pil_img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         image = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
@@ -85,20 +92,21 @@ def read_page(image_base64, run_quality_check):
     try:
         image = decode_image(image_base64)
     except (binascii.Error, ValueError, OSError, cv2.error, Image.DecompressionBombError):
-        raise ValueError("unreadable", "That image could not be opened. Try retaking it.")
+        raise PageError("unreadable", "That image could not be opened. Try retaking it.")
 
     if run_quality_check:
         problem = check_quality(image)
         if problem:
-            raise ValueError(*problem)
+            raise PageError(*problem)
 
     image = post_process(image)
     success, encoded_img = cv2.imencode(".jpg", image)
     if not success:
-        raise ValueError("unreadable", "That image could not be processed. Try retaking it.")
+        raise PageError("unreadable", "That image could not be processed. Try retaking it.")
 
     data_uri = "data:image/jpeg;base64," + base64.b64encode(encoded_img).decode("utf-8")
 
+    # redact happens on text afterwards
     try:
         response = co.chat(
             model="command-a-vision-07-2025",
@@ -116,14 +124,14 @@ def read_page(image_base64, run_quality_check):
             ],
             temperature=0.0,
         )
-    except Exception:
-        log.exception("ocr req failed")
-        raise ValueError("ocr_failed", "The reader is having trouble right now. Please try again in a moment.")
+    except Exception as e:
+        log.error("ocr request failed: %s status=%s", type(e).__name__, getattr(e, "status_code", None))
+        raise PageError("ocr_failed", "The reader is having trouble right now. Please try again in a moment.")
 
     parts = response.message.content or []
     text = parts[0].text.strip() if parts else ""
     if not text:
-        raise ValueError("no_text", "No text was found. Make sure the lab report fills the frame.")
+        raise PageError("no_text", "No text was found. Make sure the lab report fills the frame.")
     return text
 
 
@@ -147,10 +155,13 @@ def analyze_photo():
         page, b64 = numbered
         try:
             return page, read_page(b64, run_check), None
-        except ValueError as e:
+        except PageError as e:
             return page, None, e
+        except Exception as e:
+            log.error("page %d failed: %s", page, type(e).__name__)
+            return page, None, PageError("unreadable", "That page could not be processed. Try retaking it.")
 
-    # pool.map keeps input order of pages whne uploaded so should come back numbered
+    # pool.map keeps input order
     with ThreadPoolExecutor(max_workers=OCR_WORKERS) as pool:
         results = list(pool.map(run, enumerate(images, start=1)))
 
@@ -169,9 +180,18 @@ def analyze_photo():
         status = 502 if first["code"] == "ocr_failed" else 422
         return fail(message, status, first["code"])
 
-    return jsonify({"summary": "\n\n".join(texts), "pages": len(images), "problems": problems})
+    clean_text, redactions = redact("\n\n".join(texts))
+    log.info("redacted: %s", redactions)
 
+    try:
+        analysis = analyze_report(co, clean_text)
+    except AnalysisError as e:
+        return fail(e.message, 502 if e.code == "analysis_failed" else 422, e.code)
 
+    body = {**analysis, "pages": len(images), "problems": problems, "redactions": redactions}
+    if os.environ.get("DEBUG_SHOW_REDACTED") == "1":
+        body["redacted_text"] = clean_text
+    return jsonify(body)
 
 
 if __name__ == "__main__":
