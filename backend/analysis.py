@@ -25,11 +25,12 @@ Return ONE JSON object that matches the schema. Rules:
    or reword. If something is not printed, use "". Never add a result that is not in
    the text. printed_flag: copy the abnormal flag exactly as printed (H, L, High, Low,
    *, Abnormal ...), or "" if there is none.
-2. summary: 2 to 4 short sentences in plain words (about an 8th grade reading level):
+2. summary: 1 to 4 short sentences in plain words (about an 8th grade reading level):
    what kind of report this is and what stands out.
 3. key_insights: up to 5 short items. Each one explains, in plain words, what a result
    that is outside its printed range measures and that being outside the range can have
-   many causes, many of them harmless. Only discuss results that are in markers.
+   many causes, many harmless but others serious. Explain what each marker that stands out/is mentioned is in plain words. 
+   Only discuss results that are in markers.
 4. doctor_questions: 3 to 5 specific questions the person could ask their doctor.
 5. NEVER diagnose. Do not say or imply that the person has, may have, or does not have
    any disease or condition. Do not name a condition as a conclusion. Do not suggest
