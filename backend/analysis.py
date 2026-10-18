@@ -216,9 +216,6 @@ def clean_analysis(raw, source_text):
 
     questions = [q for q in (_str(q, 300) for q in (raw.get("doctor_questions") or [])[:5]) if q]
 
-    if dropped:
-        log.info("removed %d sentence(s) that read like a diagnosis", dropped)
-
     return {
         "title": _str(raw.get("title"), 80) or "Lab report",
         "report_date": _str(raw.get("report_date"), 30),
@@ -234,7 +231,7 @@ def clean_analysis(raw, source_text):
 def analyze_report(co, redacted_text):
     text = redacted_text.strip()[:MAX_INPUT_CHARS]
     if not text:
-        raise AnalysisError("no_text", "No text was found. Make sure the lab report fills the frame.")
+        raise AnalysisError("no_text", "No text was found. Make sure the lab report is in view.")
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -261,3 +258,4 @@ def analyze_report(co, redacted_text):
         except (ValueError, IndexError, AttributeError, TypeError):
             log.warning("analysis returned unusable json, retrying")
     raise AnalysisError("analysis_failed", "We couldn't organize the results. Please try scanning again.")
+

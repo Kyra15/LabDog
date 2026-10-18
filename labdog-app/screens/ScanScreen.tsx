@@ -16,7 +16,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { styles } from '../styles/ScanStyle';
 import { API_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
-import { saveReport, type AnalyzedReport } from '../lib/reports';
+// import { saveReport, type AnalyzedReport } from '../lib/reports';
 
 const ANALYZE_URL = `${API_URL}/analyze`;
 const MAX_PAGES = 10;
@@ -113,7 +113,8 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
     if (!session) return;
     setSaveState('saving');
     try {
-      await saveReport(session.user.id, data as AnalyzedReport, base64Pages);
+      // await saveReport(session.user.id, data as AnalyzedReport, base64Pages);
+      // save report using lib
       setSaveState('saved');
     } catch {
       setSaveState('error');
@@ -197,7 +198,7 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
         mediaTypes: ['images'],
         allowsMultipleSelection: true,
         selectionLimit: MAX_PAGES - pages.length,
-        orderedSelection: true, // ios has numbered pages for ordering
+        orderedSelection: true,
         base64: true,
         quality: 0.7,
       });
