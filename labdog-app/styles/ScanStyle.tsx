@@ -13,7 +13,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 14,
   },
 
-  scroll: { padding: 20, alignItems: 'center', backgroundColor: colors.cream, flex: 1, },
+  scroll: { padding: 20, alignItems: 'center', paddingBottom: 40 },
+  body: { flex: 1, backgroundColor: colors.cream },
 
   backLink: { alignSelf: 'flex-start', paddingVertical: 4 },
 
@@ -36,7 +37,7 @@ export const styles = StyleSheet.create({
 
   image: { width: '100%', height: '100%', resizeMode: 'cover' },
 
-  placeholder: { color: colors.navy, opacity: 0.5, fontFamily: fonts.regular },
+  placeholder: { color: colors.navy, opacity: 0.6, fontFamily: fonts.regular },
 
   row: { flexDirection: 'row', gap: 12, marginBottom: 12 },
 
@@ -74,14 +75,19 @@ export const styles = StyleSheet.create({
 
   summaryTitle: {
     color: colors.navy,
-    opacity: 0.6,
-    fontSize: 12,
+    fontSize: 22,
     fontFamily: fonts.bold,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
 
-  summaryText: { color: colors.navy, fontFamily: fonts.regular, fontSize: 15, lineHeight: 22 },
+  summaryText: { 
+    color: colors.navy, 
+    fontFamily: fonts.regular, 
+    fontSize: 15, 
+    lineHeight: 22,  
+    marginBottom: 22,
+  },
 
   stripWrap: { width: '100%', marginBottom: 16 },
 
@@ -121,7 +127,7 @@ export const styles = StyleSheet.create({
 
   hint: {
     color: colors.navy,
-    opacity: 0.7,
+    opacity: 0.6,
     fontSize: 13,
     fontFamily: fonts.regular,
     textAlign: 'center',
@@ -136,13 +142,13 @@ export const styles = StyleSheet.create({
 
   sectionLabel: { 
     color: colors.navy, 
-    opacity: 0.6, 
-    fontSize: 12, 
+    fontSize: 18, 
     fontFamily: fonts.bold, 
-    textTransform: 'uppercase', 
     marginTop: 18, 
     marginBottom: 6 
   },
+
+  markerList: { marginTop: 14 },
 
   markerRow: { 
     flexDirection: 'row', 
@@ -189,7 +195,7 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.regular, 
     fontSize: 12, 
     lineHeight: 17,
-     marginTop: 18 
+    marginTop: 18 
   },
 
 });

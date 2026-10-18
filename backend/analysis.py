@@ -10,7 +10,7 @@ MAX_INPUT_CHARS = 60000
 MAX_MARKERS = 100
 
 DISCLAIMER = (
-    "LabDog explains lab results in plain language. It is not a diagnosis or medical advice. Talk to your doctor about your results."
+    "LabDog explains lab results in plain language. It is not a diagnosis. Talk to your doctor about your results."
 )
 
 # used AI to set up system prompts, as AI are usually more thourough and understand how to control other AIs
@@ -149,7 +149,7 @@ def derive_flag(value, ref_range, printed_flag):
     return "normal"
 
 
-# do NOT include diagnoses because that would be an invasion of privacy
+# do NOT include diagnoses bc that would be an invasion of privacy
 _DIAGNOSIS_PATTERNS = [
     r"\bdiagnos\w*",
     r"\byou\s+(?:likely\s+|probably\s+|definitely\s+)?(?:have|has|had)\s+(?!questions?\b|a\s+question\b|any\b|some\b)",

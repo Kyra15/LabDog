@@ -247,7 +247,7 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView style={styles.body} contentContainerStyle={styles.scroll}>
 
         <Text style={styles.title}>Lab Scan Upload</Text>
 
@@ -328,26 +328,28 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
           <View style={styles.summaryBox}>
             <Text style={styles.resultTitle}>{result.title}</Text>
             <Text style={styles.summaryText}>{result.summary}</Text>
-
-            {(result.markers ?? []).map((m, i) => (
-              <View key={i} style={styles.markerRow}>
-                <View style={styles.markerMain}>
-                  <Text style={styles.markerName}>{m.name}</Text>
-                  <Text style={styles.markerMeta}>
-                    {m.value || '—'} {m.unit}{m.ref_range ? `  ·  range ${m.ref_range}` : ''}
-                  </Text>
+            
+            <View style={styles.markerList}>
+              {(result.markers ?? []).map((m, i) => (
+                <View key={i} style={styles.markerRow}>
+                  <View style={styles.markerMain}>
+                    <Text style={styles.markerName}>{m.name}</Text>
+                    <Text style={styles.markerMeta}>
+                      {m.value || '—'} {m.unit}{m.ref_range ? ` - range ${m.ref_range}` : ''}
+                    </Text>
+                  </View>
+                  <View style={[styles.flagPill, styles[`flag_${m.flag}` as const]]}>
+                    <Text style={styles.flagText}>{FLAG_LABEL[m.flag]}</Text>
+                  </View>
                 </View>
-                <View style={[styles.flagPill, styles[`flag_${m.flag}` as const]]}>
-                  <Text style={styles.flagText}>{FLAG_LABEL[m.flag]}</Text>
-                </View>
-              </View>
-            ))}
+              ))}
+            </View>
 
-            {(result.key_insights ?? []).length > 0 && <Text style={styles.sectionLabel}>What stands out</Text>}
-            {(result.key_insights ?? []).map((t, i) => <Text key={i} style={styles.summaryText}>• {t}</Text>)}
+            {(result.key_insights ?? []).length > 0 && <Text style={styles.sectionLabel}>What stands out:</Text>}
+            {(result.key_insights ?? []).map((t, i) => <Text key={i} style={styles.summaryText}>-{t}</Text>)}
 
-            {(result.doctor_questions ?? []).length > 0 && <Text style={styles.sectionLabel}>Questions for your doctor</Text>}
-            {(result.doctor_questions ?? []).map((t, i) => <Text key={i} style={styles.summaryText}>• {t}</Text>)}
+            {(result.doctor_questions ?? []).length > 0 && <Text style={styles.sectionLabel}>Questions for your doctor:</Text>}
+            {(result.doctor_questions ?? []).map((t, i) => <Text key={i} style={styles.summaryText}>- {t}</Text>)}
 
             <Text style={styles.disclaimer}>{result.disclaimer}</Text>
           </View>
