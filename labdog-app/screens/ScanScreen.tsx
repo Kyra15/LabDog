@@ -15,6 +15,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { styles } from '../styles/ScanStyle';
 import { API_URL } from '../config';
+import { useAuth } from '../context/AuthContext';
+import { saveReport, type AnalyzedReport } from '../lib/reports';
 
 const ANALYZE_URL = `${API_URL}/analyze`;
 const MAX_PAGES = 10;
@@ -103,6 +105,20 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
   const [notice, setNotice] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [slowHint, setSlowHint] = useState<boolean>(false);
+
+  const { session } = useAuth();
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  const save = async (data: AnalyzeResponse, base64Pages: string[]): Promise<void> => {
+    if (!session) return;
+    setSaveState('saving');
+    try {
+      await saveReport(session.user.id, data as AnalyzedReport, base64Pages);
+      setSaveState('saved');
+    } catch {
+      setSaveState('error');
+    }
+  };
 
   const requestPermissions = async (type: 'camera' | 'library'): Promise<boolean> => {
     if (type === 'camera') {
