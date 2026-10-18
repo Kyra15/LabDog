@@ -16,7 +16,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { styles } from '../styles/ScanStyle';
 import { API_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
-// import { saveReport, type AnalyzedReport } from '../lib/reports';
+import { saveReport, type AnalyzedReport } from '../lib/reports';
 
 const ANALYZE_URL = `${API_URL}/analyze`;
 const MAX_PAGES = 10;
@@ -35,8 +35,14 @@ interface PageProblem {
   error: string;
 }
 interface Marker {
-  name: string; value: string; unit: string; ref_range: string;
+  name: string; 
+  value: string; 
+  unit: string; 
+  ref_range: string;
   flag: 'low' | 'normal' | 'high' | 'unknown';
+  report_date?: string | null;
+  name_key: string;
+  value_num: number | null;
 }
 interface AnalyzeResponse {
   summary?: string;
@@ -47,7 +53,10 @@ interface AnalyzeResponse {
   markers?: Marker[];
   key_insights?: string[];
   doctor_questions?: string[];
-  disclaimer?: string
+  disclaimer?: string;
+  report_date?: string | null;
+  name_key?: string;
+  value_num?: number | null;
 }
 
 type Outcome =
@@ -113,7 +122,7 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
     if (!session) return;
     setSaveState('saving');
     try {
-      // await saveReport(session.user.id, data as AnalyzedReport, base64Pages);
+      await saveReport(session.user.id, data as AnalyzedReport, base64Pages);
       // save report using lib
       setSaveState('saved');
     } catch {
@@ -233,6 +242,8 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
 
     if (outcome.ok) {
       setResult(outcome.data);
+      setSaveState('idle');
+      save(outcome.data, pages.map((p) => p.base64));
       const skipped = outcome.data.problems ?? [];
       if (skipped.length > 0) {
         const which =

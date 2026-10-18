@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useAuth } from '../context/AuthContext';
 import { styles } from '../styles/HomeStyle';
-// import { listReports, type ReportCard } from '../lib/reports';
+import { listReports, type ReportCard } from '../lib/reports';
 
 // export interface Report {
 //   id: string;
