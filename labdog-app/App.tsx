@@ -15,7 +15,7 @@ import {
 } from '@expo-google-fonts/google-sans';
 import type { RootStackParamList } from './navigation/types';
 import { colors } from './theme';
-import HomeScreen from './screens/HomeScreen';
+import MainTabs from './navigation/mainTabs';
 import ScanScreen from './screens/ScanScreen';
 import SignInScreen from './screens/SignInScreen';
 
@@ -38,7 +38,7 @@ function RootNavigator(): React.JSX.Element {
     >
       {isLoggedIn ? (
         <>
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="Scan" component={ScanScreen} />
         </>
       ) : (
