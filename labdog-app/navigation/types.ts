@@ -1,5 +1,13 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
+
+// bottom tabs shown after sign in
+export type MainTabParamList = {
+  Library: undefined;
+  Assistant: undefined;
+};
+
 export type RootStackParamList = {
-  Home: undefined;
+  Main: NavigatorScreenParams<MainTabParamList> | undefined;
   Scan: undefined;
   Insights: undefined;
   SignIn: undefined;

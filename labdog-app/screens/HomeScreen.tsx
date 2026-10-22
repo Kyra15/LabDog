@@ -2,8 +2,10 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/types';
+import type { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { useAuth } from '../context/AuthContext';
 import { styles } from '../styles/HomeStyle';
 import { listReports, type ReportCard } from '../lib/reports';
@@ -22,7 +24,10 @@ import { listReports, type ReportCard } from '../lib/reports';
 //   { id: 'a0988', title: 'Thyroid Panel (TSH, T3, T4)', date: 'Jun 02, 2026' },
 // ];
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Library'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 export default function HomeScreen({ navigation }: Props): React.JSX.Element {
   const { signOut } = useAuth();
