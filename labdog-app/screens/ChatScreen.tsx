@@ -170,8 +170,6 @@ export default function ChatScreen(): React.JSX.Element {
     setInput('');
   };
 
-  const demoOnly = (): void => Alert.alert('Demo', 'This button is for the demo only.');
-
   const suggestions = SCRIPT.filter((_, i) => !used.has(i)).map((s) => s.suggest);
 
   const renderProvider = (p: Provider): React.JSX.Element => (
@@ -185,10 +183,10 @@ export default function ChatScreen(): React.JSX.Element {
           <Text style={styles.badgeText}>{p.acceptingNew ? 'Accepting new patients' : 'Waitlist'}</Text>
         </View>
         <View style={styles.providerActions}>
-          <TouchableOpacity onPress={demoOnly} hitSlop={8}>
+          <TouchableOpacity hitSlop={8}>
             <Ionicons name="call-outline" size={18} color={colors.navy} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={demoOnly} hitSlop={8}>
+          <TouchableOpacity hitSlop={8}>
             <Ionicons name="navigate-outline" size={18} color={colors.navy} />
           </TouchableOpacity>
         </View>
@@ -213,7 +211,6 @@ export default function ChatScreen(): React.JSX.Element {
           {item.providers && (
             <View style={styles.providerList}>
               {item.providers.map(renderProvider)}
-              <Text style={styles.sampleNote}>Sample results for the prototype</Text>
             </View>
           )}
         </View>

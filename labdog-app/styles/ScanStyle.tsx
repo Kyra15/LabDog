@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  buttonDisabled: { backgroundColor: colors.gold },
+  buttonDisabled: { backgroundColor: colors.terracotta, opacity: 0.5 },
 
   buttonText: { color: colors.white, fontFamily: fonts.bold, fontSize: 15 },
 
@@ -134,7 +134,7 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  notice: { width: '100%', backgroundColor: colors.gold, borderRadius: 12, padding: 12, marginTop: 24 },
+  notice: { width: '100%', backgroundColor: colors.terracotta, borderRadius: 12, padding: 12, marginTop: 24 },
 
   noticeText: { color: colors.navy, fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
 
