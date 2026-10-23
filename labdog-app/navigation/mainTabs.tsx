@@ -5,6 +5,7 @@ import type { MainTabParamList } from './types';
 import { colors, fonts } from '../theme';
 import HomeScreen from '../screens/HomeScreen';
 import ChatScreen from '../screens/ChatScreen';
+import TrendsScreen from '../screens/TrendScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -23,12 +24,15 @@ export default function MainTabs(): React.JSX.Element {
           const name =
             route.name === 'Library'
               ? focused ? 'documents' : 'documents-outline'
-              : focused ? 'chatbubbles' : 'chatbubbles-outline';
+              : route.name === 'Trends'
+                ? focused ? 'pulse' : 'pulse-outline'
+                : focused ? 'chatbubbles' : 'chatbubbles-outline';
           return <Ionicons name={name} size={size} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Library" component={HomeScreen} />
+      <Tab.Screen name="Trends" component={TrendsScreen} />
       <Tab.Screen name="Assistant" component={ChatScreen} />
     </Tab.Navigator>
   );
