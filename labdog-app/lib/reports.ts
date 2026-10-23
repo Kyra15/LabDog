@@ -161,3 +161,19 @@ export async function getMarkerHistory(nameKey: string): Promise<HistoryPoint[]>
   if (error) throw new Error('Could not load the history.');
   return data;
 }
+
+export async function deleteReport(reportId: string): Promise<void> {
+  const { data: row } = await supabase
+    .from('reports')
+    .select('image_paths')
+    .eq('id', reportId)
+    .single<{ image_paths: string[] | null }>();
+
+  const paths = row?.image_paths ?? [];
+  if (paths.length > 0) await supabase.storage.from(BUCKET).remove(paths);
+
+  await supabase.from('report_markers').delete().eq('report_id', reportId);
+
+  const { error } = await supabase.from('reports').delete().eq('id', reportId);
+  if (error) throw new Error('Could not delete that report.');
+}

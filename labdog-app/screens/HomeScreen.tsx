@@ -1,5 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, Image, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { Ionicons } from '@react-native-vector-icons/ionicons';
+import { colors } from '../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -8,7 +10,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { MainTabParamList, RootStackParamList } from '../navigation/types';
 import { useAuth } from '../context/AuthContext';
 import { styles } from '../styles/HomeStyle';
-import { listReports, type ReportCard } from '../lib/reports';
+import { deleteReport, listReports, type ReportCard } from '../lib/reports';
 
 // export interface Report {
 //   id: string;
@@ -24,6 +26,7 @@ import { listReports, type ReportCard } from '../lib/reports';
 //   { id: 'a0988', title: 'Thyroid Panel (TSH, T3, T4)', date: 'Jun 02, 2026' },
 // ];
 
+// lib tab in stack
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Library'>,
   NativeStackScreenProps<RootStackParamList>
@@ -60,6 +63,27 @@ export default function HomeScreen({ navigation }: Props): React.JSX.Element {
     setRefreshing(false);
   };
  
+  // x button on a card -> confirm -> remove it from the list and the database
+  const confirmDelete = (report: ReportCard): void => {
+    Alert.alert('Delete this report?', `${report.title} will be removed for good.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          const before = reports;
+          setReports((prev) => prev.filter((r) => r.id !== report.id));
+          try {
+            await deleteReport(report.id);
+          } catch (e) {
+            setReports(before);
+            Alert.alert(e instanceof Error ? e.message : 'Could not delete that report.');
+          }
+        },
+      },
+    ]);
+  };
+
   const renderCard = ({ item }: { item: ReportCard }): React.JSX.Element => (
     <TouchableOpacity
       style={styles.card}
@@ -70,6 +94,15 @@ export default function HomeScreen({ navigation }: Props): React.JSX.Element {
         {item.thumbnailUri && (
           <Image source={{ uri: item.thumbnailUri }} style={styles.thumbnailImage} />
         )}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => confirmDelete(item)}
+          hitSlop={8}
+          activeOpacity={0.8}
+          accessibilityLabel={`Delete ${item.title}`}
+        >
+          <Ionicons name="close" size={16} color={colors.navy} />
+        </TouchableOpacity>
       </View>
       <View style={styles.cardBody}>
         <Text style={styles.cardTitle} numberOfLines={2}>
