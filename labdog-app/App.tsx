@@ -17,6 +17,7 @@ import type { RootStackParamList } from './navigation/types';
 import { colors } from './theme';
 import MainTabs from './navigation/mainTabs';
 import ScanScreen from './screens/ScanScreen';
+import MarkerScreen from './screens/MarkerScreen';
 import SignInScreen from './screens/SignInScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -40,6 +41,7 @@ function RootNavigator(): React.JSX.Element {
         <>
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="Scan" component={ScanScreen} />
+          <Stack.Screen name="Marker" component={MarkerScreen} />
         </>
       ) : (
         <Stack.Screen name="SignIn" component={SignInScreen} />
