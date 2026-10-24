@@ -1,4 +1,4 @@
-// currently using sample stuff bc im lazy fr
+// currently using sample stuff bc no time sigh
 
 export type Flag = 'low' | 'normal' | 'high' | 'unknown';
 
@@ -156,49 +156,101 @@ function toRange(printed: string): Range | null {
   return null;
 }
 
-function buildSeries(key: string, rows: Row[]): MarkerSeries {
-  const readings: Reading[] = rows.map(([rk, value, unit, refRange, flag]) => {
-    const r = REPORTS[rk];
-    const n = Number(value);
-    return {
-      reportId: r.id,
-      reportTitle: r.title,
-      date: r.date,
-      value,
-      num: Number.isFinite(n) ? n : null,
-      unit,
-      refRange,
-      range: toRange(refRange),
-      flag,
-    };
-  });
-  const latest = readings[readings.length - 1];
-  const chartable = readings.filter((r) => r.num !== null);
-  const earlier = chartable.filter((r) => r !== latest);
-  const def = DEFINITIONS[key];
+// short names / spellings that don't match a definition name exactly
+const ALIASES: Record<string, string> = {
+  hgb: 'hemoglobin', hb: 'hemoglobin', hct: 'hematocrit', plt: 'platelets',
+  'wbc count': 'wbc', 'white blood cell count': 'wbc', 'rbc count': 'rbc', 'platelet count': 'platelets',
+  'ldl c': 'ldl', 'ldl chol calc': 'ldl', 'hdl c': 'hdl', 'cholesterol total': 'cholesterol_total',
+  'glucose fasting': 'glucose', 'fasting glucose': 'glucose', 'ferritin serum': 'ferritin',
+  'hemoglobin a1c': 'a1c', hba1c: 'a1c', 'alt sgpt': 'alt', 'ast sgot': 'ast', 't4 free': 'free_t4',
+  nitrite: 'urine_nitrite', 'urine nitrite': 'urine_nitrite',
+};
+
+const clean = (s: string): string =>
+  s.toLowerCase().replace(/\([^)]*\)/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
+
+// finds which marker a scanned name is, so we can show its definition and sample history
+function findKey(name: string): string | null {
+  const n = clean(name);
+  if (ALIASES[n]) return ALIASES[n];
+  for (const [key, def] of Object.entries(DEFINITIONS)) {
+    if (n === key.replace(/_/g, ' ') || n === clean(def.name)) return key;
+  }
+  return SAMPLE[n.replace(/ /g, '_')] ? n.replace(/ /g, '_') : null;
+}
+
+function sampleReading([rk, value, unit, refRange, flag]: Row): Reading {
+  const r = REPORTS[rk];
+  const n = Number(value);
   return {
-    key,
-    name: def?.name ?? NAMES[key] ?? key,
-    group: def?.group ?? 'Urine',
+    reportId: r.id,
+    reportTitle: r.title,
+    date: r.date,
+    value,
+    num: value.trim() !== '' && Number.isFinite(n) ? n : null,
+    unit,
+    refRange,
+    range: toRange(refRange),
+    flag,
+  };
+}
+
+function todayIso(): string {
+  const d = new Date();
+  const pad = (x: number): string => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+const sameUnit = (a: string, b: string): boolean =>
+  a.replace(/\s+/g, '').toLowerCase() === b.replace(/\s+/g, '').toLowerCase();
+
+// what the scan results pass in when a marker row is tapped
+export interface TappedMarker {
+  name: string;
+  value?: string;
+  unit?: string;
+  refRange?: string;
+  flag?: Flag;
+}
+
+export const THIS_SCAN = 'This scan';
+
+const wait = (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
+
+// builds the stats page data: sample history (if we have some for this marker) + the tapped result
+export async function loadMarker(tapped: TappedMarker): Promise<MarkerSeries | null> {
+  await wait(300);
+  const key = findKey(tapped.name);
+  const readings: Reading[] = (key && SAMPLE[key] ? SAMPLE[key] : []).map(sampleReading);
+
+  if (tapped.value) {
+    const n = Number((tapped.value ?? '').replace(/,/g, ''));
+    readings.push({
+      reportId: 'scan',
+      reportTitle: THIS_SCAN,
+      date: todayIso(),
+      value: tapped.value,
+      num: Number.isFinite(n) ? n : null,
+      unit: tapped.unit ?? '',
+      refRange: tapped.refRange ?? '',
+      range: toRange((tapped.refRange ?? '').replace(/\s+/g, '')),
+      flag: tapped.flag ?? 'unknown',
+    });
+  }
+  if (readings.length === 0) return null;
+
+  const latest = readings[readings.length - 1];
+  const chartable = readings.filter((r) => r.num !== null && sameUnit(r.unit, latest.unit));
+  const earlier = chartable.filter((r) => r !== latest);
+  const def = key ? DEFINITIONS[key] : undefined;
+  return {
+    key: key ?? clean(tapped.name).replace(/ /g, '_'),
+    name: def?.name ?? (key ? NAMES[key] : undefined) ?? tapped.name,
+    group: def?.group ?? (key === 'urine_nitrite' ? 'Urine' : 'Lab result'),
     about: def?.about ?? GENERIC_ABOUT,
     readings,
     latest,
     previous: latest.num !== null && earlier.length > 0 ? earlier[earlier.length - 1] : null,
     chartable,
   };
-}
-
-const MOCK_SERIES: MarkerSeries[] = Object.entries(SAMPLE).map(([k, rows]) => buildSeries(k, rows));
-
-const wait = (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
-
-export async function loadMarkerSeries(): Promise<MarkerSeries[]> {
-  await wait(300);
-  const attention = (s: MarkerSeries): number => (s.latest.flag === 'high' || s.latest.flag === 'low' ? 0 : 1);
-  return [...MOCK_SERIES].sort((a, b) => attention(a) - attention(b) || a.name.localeCompare(b.name));
-}
-
-export async function loadMarker(key: string): Promise<MarkerSeries | null> {
-  const all = await loadMarkerSeries();
-  return all.find((s) => s.key === key) ?? null;
 }

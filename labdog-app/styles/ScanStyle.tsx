@@ -161,6 +161,8 @@ export const styles = StyleSheet.create({
 
   markerMain: { flex: 1, paddingRight: 10 },
 
+  markerChevron: { marginLeft: 6, opacity: 0.5 },
+
   markerName: { color: colors.navy, fontFamily: fonts.bold, fontSize: 14 },
 
   markerMeta: { 

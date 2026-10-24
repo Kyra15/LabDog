@@ -13,7 +13,9 @@ import * as ImagePicker from 'expo-image-picker';
 import DocumentScanner, { ResponseType } from 'react-native-document-scanner-plugin';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import { Ionicons } from '@react-native-vector-icons/ionicons';
 import { styles } from '../styles/ScanStyle';
+import { colors } from '../theme';
 import { API_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { saveReport, type AnalyzedReport } from '../lib/reports';
@@ -359,7 +361,21 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
             
             <View style={styles.markerList}>
               {(result.markers ?? []).map((m, i) => (
-                <View key={i} style={styles.markerRow}>
+                // tap a marker to open its stats page (history, definition, etc.)
+                <TouchableOpacity
+                  key={i}
+                  style={styles.markerRow}
+                  activeOpacity={0.7}
+                  onPress={() =>
+                    navigation.navigate('Marker', {
+                      name: m.name,
+                      value: m.value,
+                      unit: m.unit,
+                      refRange: m.ref_range,
+                      flag: m.flag,
+                    })
+                  }
+                >
                   <View style={styles.markerMain}>
                     <Text style={styles.markerName}>{m.name}</Text>
                     <Text style={styles.markerMeta}>
@@ -369,7 +385,8 @@ export default function ScanScreen({ navigation }: Props): React.JSX.Element {
                   <View style={[styles.flagPill, styles[`flag_${m.flag}` as const]]}>
                     <Text style={styles.flagText}>{FLAG_LABEL[m.flag]}</Text>
                   </View>
-                </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.navy} style={styles.markerChevron} />
+                </TouchableOpacity>
               ))}
             </View>
 
